@@ -139,12 +139,13 @@ resource "azurerm_virtual_machine" "main" {
   }
 
   os_profile_linux_config {
-    disable_password_authentication = true
-    ssh_keys {
-      path        = "/home/${var.admin_username}/.ssh/authorized_keys"
-      public_key  = file("/Users/Daniyal/Desktop/Courses/Cloud/Semester 2/devops infra/cst8918-w25-A05-dani0197/id_rsa.pub")  # Updated path
-    }
+  disable_password_authentication = true
+  ssh_keys {
+    path     = "/home/${var.admin_username}/.ssh/authorized_keys"
+    key_data = file("/Users/Daniyal/Desktop/Courses/Cloud/Semester 2/devops infra/cst8918-w25-A05-dani0197/id_rsa.pub")  # Updated path
   }
+}
+
 
   storage_image_reference {
     publisher = "Canonical"
