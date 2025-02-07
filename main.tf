@@ -117,6 +117,50 @@ resource "azurerm_network_interface" "main" {
   }
 }
 
+# Virtual Machine
+resource "azurerm_virtual_machine" "main" {
+  name                             = "${var.labelPrefix}-vm"
+  location                         = azurerm_resource_group.main.location
+  resource_group_name              = azurerm_resource_group.main.name
+  network_interface_ids            = [azurerm_network_interface.main.id]
+  vm_size                          = "Standard_B1s"  # Using a cheaper VM size for test deployment
+  availability_set_id              = null
+  delete_data_disks_on_termination = false
+  delete_os_disk_on_termination    = false
+  tags                             = {
+    "Environment" = "Development"
+    "Owner"       = "Daniyal"
+  }
+
+  os_profile {
+    computer_name  = "${var.labelPrefix}-vm"
+    admin_username = var.admin_username  # Use the variable for admin username
+    admin_password = ""  # SSH-based authentication (no password)
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = true
+    ssh_keys {
+      path        = "/home/${var.admin_username}/.ssh/authorized_keys"
+      public_key  = file("/Users/Daniyal/Desktop/Courses/Cloud/Semester 2/devops infra/cst8918-w25-A05-dani0197/id_rsa.pub")  # Updated path
+    }
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "${var.labelPrefix}-osdisk"
+    disk_size_gb      = 30
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+    caching           = "ReadWrite"
+  }
+}
 
 # Cloud-init Config
 data "cloudinit_config" "init" {
@@ -129,42 +173,13 @@ data "cloudinit_config" "init" {
   }
 }
 
-# Virtual Machine
-resource "azurerm_virtual_machine" "main" {
-  name                  = "${var.labelPrefix}-vm"
-  location              = azurerm_resource_group.main.location
-  resource_group_name   = azurerm_resource_group.main.name
-  network_interface_ids = [azurerm_network_interface.main.id]
-  vm_size               = "Standard_B1s"
+# Output Values
+output "resource_group_name" {
+  description = "The name of the resource group"
+  value       = azurerm_resource_group.main.name
+}
 
-  # OS configuration
-  os_profile {
-    computer_name  = "${var.labelPrefix}-vm"
-    admin_username = var.admin_username
-    custom_data    = data.cloudinit_config.init.rendered
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-
-  # Storage configuration
-  storage_os_disk {
-    name              = "${var.labelPrefix}-osdisk"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
-
-  tags = {
-    Environment = "Development"
-    Owner       = "Daniyal"
-  }
+output "public_ip_address" {
+  description = "The public IP address of the VM"
+  value       = azurerm_public_ip.main.ip_address
 }
