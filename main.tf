@@ -42,3 +42,9 @@ variable "admin_username" {
   type        = string
   default     = "daniyal" # Update this if needed
 }
+
+resource "azurerm_resource_group" "main" {
+  name     = "${var.labelPrefix}-A05-RG"
+  location = var.region
+}
+
