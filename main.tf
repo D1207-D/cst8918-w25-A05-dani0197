@@ -24,3 +24,21 @@ provider "azurerm" {
 provider "cloudinit" {
   # Configuration options
 }
+
+variable "labelPrefix" {
+  description = "Prefix for resource names"
+  type        = string
+  default     = "dani0197" # Update this
+}
+
+variable "region" {
+  description = "Azure region for resource deployment"
+  type        = string
+  default     = "Canada Central" # Update this if needed
+}
+
+variable "admin_username" {
+  description = "Admin username for the VM"
+  type        = string
+  default     = "daniyal" # Update this if needed
+}
