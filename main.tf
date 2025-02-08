@@ -5,11 +5,9 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0.2"
     }
     cloudinit = {
       source  = "hashicorp/cloudinit"
-      version = "2.3.3"
     }
   }
 }
@@ -79,8 +77,8 @@ resource "azurerm_network_security_group" "main" {
   resource_group_name = azurerm_resource_group.main.name
 
   security_rule {
-    name                       = "AllowSSH"
-    priority                   = 1001
+    name                       = "Allow-SSH"
+    priority                   = 1000
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -91,8 +89,8 @@ resource "azurerm_network_security_group" "main" {
   }
 
   security_rule {
-    name                       = "AllowHTTP"
-    priority                   = 1002
+    name                       = "Allow-HTTP"
+    priority                   = 1010
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
@@ -117,6 +115,12 @@ resource "azurerm_network_interface" "main" {
   }
 }
 
+# Associate NSG with NIC
+resource "azurerm_network_interface_security_group_association" "main" {
+  network_interface_id      = azurerm_network_interface.main.id
+  network_security_group_id = azurerm_network_security_group.main.id
+}
+
 # Virtual Machine
 resource "azurerm_virtual_machine" "main" {
   name                             = "${var.labelPrefix}-vm"
@@ -139,13 +143,13 @@ resource "azurerm_virtual_machine" "main" {
   }
 
   os_profile_linux_config {
-  disable_password_authentication = true
-  ssh_keys {
-    path     = "/home/${var.admin_username}/.ssh/authorized_keys"
-    key_data = file("/Users/Daniyal/Desktop/Courses/Cloud/Semester 2/devops infra/cst8918-w25-A05-dani0197/id_rsa.pub")  # Updated path
-  }
-}
+    disable_password_authentication = true
 
+    ssh_keys {
+      path     = "/home/${var.admin_username}/.ssh/authorized_keys"
+      key_data = file("/Users/Daniyal/Desktop/Courses/Cloud/Semester 2/devops infra/cst8918-w25-A05-dani0197/id_rsa.pub")
+    }
+  }
 
   storage_image_reference {
     publisher = "Canonical"
